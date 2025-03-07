@@ -1,0 +1,24 @@
+{
+    "name": "SymCC",
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "target": "base"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "ms-vscode.makefile-tools",
+                "ms-vscode.cmake-tools",
+                "llvm-vs-code-extensions.vscode-clangd",
+                "magnobiet.docker-extension-pack",
+                "eamodio.gitlens",
+                "Gruntfuggly.todo-tree",
+                "alefragnani.Bookmarks",
+                "MatthewNespor.vscode-color-identifiers-mode",
+                "timonwongl.shellcheck",
+                "bmalehorn.shell-syntax"
+            ]
+        }
+    }
+}

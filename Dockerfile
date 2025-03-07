@@ -15,7 +15,7 @@
 #
 # The base image
 #
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:22.04 AS base
 
 # Install dependencies
 RUN apt-get update \
@@ -28,7 +28,9 @@ RUN apt-get update \
         ninja-build \
         python3-pip \
         zlib1g-dev \
-        wget  
+        wget \
+        curl
+
 RUN pip3 install lit
 
 WORKDIR /
@@ -40,7 +42,7 @@ RUN git clone -b v2.56b https://github.com/google/AFL.git afl \
 
 # This is passed along to symcc and qsym backend
 # Version 15 is buggy  https://github.com/eurecom-s3/symcc/issues/164
-arg LLVM_VERSION=12
+ARG LLVM_VERSION=12
 
 # installing/building with the right LLVM version, currently:
 # - no plan to support < 11
@@ -59,6 +61,20 @@ RUN rm -rf /var/lib/apt/lists/*
 # Download the LLVM sources already so that we don't need to get them again when
 # SymCC changes
 RUN git clone -b llvmorg-$LLVM_VERSION.0.0 --depth 1 https://github.com/llvm/llvm-project.git /llvm_source
+
+RUN cd /tmp \
+    && case "$(uname -m)" in \
+        x86_64) \
+            wget -O gh-cli.deb https://github.com/cli/cli/releases/download/v2.68.1/gh_2.68.1_linux_amd64.deb \
+            ;; \
+        aarch64) \
+            wget -O gh-cli.deb https://github.com/cli/cli/releases/download/v2.68.1/gh_2.68.1_linux_arm64.deb \
+            ;; \
+    esac \
+    && apt-get install -y ./gh-cli.deb \
+    && rm gh-cli.deb
+
+FROM base AS builder
 
 # Build a version of SymCC with the simple backend to compile libc++
 COPY . /symcc_source
@@ -116,7 +132,7 @@ RUN cmake -G Ninja \
 #
 # The final image
 #
-FROM ubuntu:22.04 as symcc
+FROM ubuntu:22.04 AS symcc
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -127,7 +143,7 @@ RUN apt-get update \
     && useradd -m -s /bin/bash ubuntu \
     && echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/ubuntu
 
-arg LLVM_VERSION=15
+ARG LLVM_VERSION=15
 
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
