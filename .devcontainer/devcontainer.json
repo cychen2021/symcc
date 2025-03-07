@@ -17,7 +17,8 @@
                 "alefragnani.Bookmarks",
                 "MatthewNespor.vscode-color-identifiers-mode",
                 "timonwongl.shellcheck",
-                "bmalehorn.shell-syntax"
+                "bmalehorn.shell-syntax",
+                "QiaoJie.binary-viewer"
             ]
         }
     }
