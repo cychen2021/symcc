@@ -29,7 +29,8 @@ RUN apt-get update \
         python3-pip \
         zlib1g-dev \
         wget \
-        curl
+        curl \
+        vim
 
 RUN pip3 install lit
 
