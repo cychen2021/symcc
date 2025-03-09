@@ -39,7 +39,14 @@ WORKDIR /
 # Build AFL.
 RUN git clone -b v2.56b https://github.com/google/AFL.git afl \
     && cd afl \
-    && make
+    && case "$(uname -m)" in \
+        x86_64) \
+            make \
+            ;; \
+        aarch64) \
+            AFL_NO_X86=1 make \
+            ;; \
+    esac
 
 # This is passed along to symcc and qsym backend
 # Version 15 is buggy  https://github.com/eurecom-s3/symcc/issues/164
