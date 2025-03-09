@@ -18,7 +18,8 @@
                 "MatthewNespor.vscode-color-identifiers-mode",
                 "timonwongl.shellcheck",
                 "bmalehorn.shell-syntax",
-                "QiaoJie.binary-viewer"
+                "QiaoJie.binary-viewer",
+                "ms-python.python"
             ]
         }
     }
