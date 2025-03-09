@@ -73,7 +73,7 @@ Runtime::Runtime(Module &M) {
       import(M, "_sym_concat_helper", ptrT, ptrT,
              ptrT); // doesn't follow naming convention for historic reasons
   pushPathConstraint =
-      import(M, "_sym_push_path_constraint", voidT, ptrT, int1T, intPtrType);
+      import(M, "_sym_push_path_constraint", voidT, ptrT, ptrT, int1T, intPtrType);
 
   // Overflow arithmetic
   buildAddOverflow =
@@ -102,6 +102,7 @@ Runtime::Runtime(Module &M) {
       import(M, "_sym_get_parameter_expression", ptrT, int8T);
   setReturnExpression = import(M, "_sym_set_return_expression", voidT, ptrT);
   getReturnExpression = import(M, "_sym_get_return_expression", ptrT);
+  logFunctionInfo = import(M, "_sym_log_function_info", voidT, ptrT, ptrT);
 
 #define LOAD_BINARY_OPERATOR_HANDLER(constant, name)                           \
   binaryOperatorHandlers[Instruction::constant] =                              \

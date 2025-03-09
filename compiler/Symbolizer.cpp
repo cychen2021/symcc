@@ -438,8 +438,10 @@ void Symbolizer::visitSelectInst(SelectInst &I) {
   // expression over from the chosen argument.
 
   IRBuilder<> IRB(&I);
+  auto func_name_str = IRB.CreateGlobalStringPtr(I.getFunction()->getName());
   auto runtimeCall = buildRuntimeCall(IRB, runtime.pushPathConstraint,
-                                      {{I.getCondition(), true},
+                                      {{func_name_str, false},
+                                       {I.getCondition(), true},
                                        {I.getCondition(), false},
                                        {getTargetPreferredInt(&I), false}});
   registerSymbolicComputation(runtimeCall);
@@ -477,6 +479,9 @@ void Symbolizer::visitReturnInst(ReturnInst &I) {
   IRBuilder<> IRB(&I);
   IRB.CreateCall(runtime.setReturnExpression,
                  getSymbolicExpressionOrNull(I.getReturnValue()));
+  StringRef function_name = I.getFunction()->getName();
+  auto func_name_str = IRB.CreateGlobalStringPtr(function_name);
+  IRB.CreateCall(runtime.logFunctionInfo, {func_name_str, getSymbolicExpressionOrNull(I.getReturnValue())});
 }
 
 void Symbolizer::visitBranchInst(BranchInst &I) {
@@ -488,8 +493,11 @@ void Symbolizer::visitBranchInst(BranchInst &I) {
     return;
 
   IRBuilder<> IRB(&I);
+  StringRef function_name = I.getFunction()->getName();
+  auto func_name_str = IRB.CreateGlobalStringPtr(function_name);
   auto runtimeCall = buildRuntimeCall(IRB, runtime.pushPathConstraint,
-                                      {{I.getCondition(), true},
+                                      {{func_name_str, false},
+                                      {I.getCondition(), true},
                                        {I.getCondition(), false},
                                        {getTargetPreferredInt(&I), false}});
   registerSymbolicComputation(runtimeCall);
@@ -923,8 +931,10 @@ void Symbolizer::visitSwitchInst(SwitchInst &I) {
     auto *caseConstraint = IRB.CreateCall(
         runtime.comparisonHandlers[CmpInst::ICMP_EQ],
         {conditionExpr, createValueExpression(caseHandle.getCaseValue(), IRB)});
+
+    auto func_name_str = IRB.CreateGlobalStringPtr(I.getFunction()->getName());
     IRB.CreateCall(runtime.pushPathConstraint,
-                   {caseConstraint, caseTaken, getTargetPreferredInt(&I)});
+                   {func_name_str, caseConstraint, caseTaken, getTargetPreferredInt(&I), func_name_str});
   }
 }
 
@@ -1094,9 +1104,10 @@ void Symbolizer::tryAlternative(IRBuilder<> &IRB, Value *V) {
     auto *destAssertion =
         IRB.CreateCall(runtime.comparisonHandlers[CmpInst::ICMP_EQ],
                        {destExpr, concreteDestExpr});
+    auto func_name_str = IRB.CreateGlobalStringPtr(StringRef("TODO"));
     auto *pushAssertion = IRB.CreateCall(
         runtime.pushPathConstraint,
-        {destAssertion, IRB.getInt1(true), getTargetPreferredInt(V)});
+        {func_name_str, destAssertion, IRB.getInt1(true), getTargetPreferredInt(V), func_name_str});
     registerSymbolicComputation(SymbolicComputation(
         concreteDestExpr, pushAssertion, {Input(V, 0, destAssertion)}));
   }
