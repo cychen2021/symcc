@@ -1097,6 +1097,11 @@ Symbolizer::SymbolicComputation Symbolizer::forceBuildRuntimeCall(
   return SymbolicComputation(call, call, inputs);
 }
 
+Constant* _createTodoString(IRBuilder<> &IRB) {
+  auto *todoString = IRB.CreateGlobalStringPtr("TODO");
+  return todoString;
+}
+
 void Symbolizer::tryAlternative(IRBuilder<> &IRB, Value *V) {
   auto *destExpr = getSymbolicExpression(V);
   if (destExpr != nullptr) {
@@ -1104,10 +1109,9 @@ void Symbolizer::tryAlternative(IRBuilder<> &IRB, Value *V) {
     auto *destAssertion =
         IRB.CreateCall(runtime.comparisonHandlers[CmpInst::ICMP_EQ],
                        {destExpr, concreteDestExpr});
-    auto func_name_str = IRB.CreateGlobalStringPtr(StringRef("TODO"));
     auto *pushAssertion = IRB.CreateCall(
         runtime.pushPathConstraint,
-        {func_name_str, destAssertion, IRB.getInt1(true), getTargetPreferredInt(V), func_name_str});
+        {_createTodoString(IRB), destAssertion, IRB.getInt1(true), getTargetPreferredInt(V)});
     registerSymbolicComputation(SymbolicComputation(
         concreteDestExpr, pushAssertion, {Input(V, 0, destAssertion)}));
   }
