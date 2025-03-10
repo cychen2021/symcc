@@ -50,7 +50,7 @@ RUN git clone -b v2.56b https://github.com/google/AFL.git afl \
 
 # This is passed along to symcc and qsym backend
 # Version 15 is buggy  https://github.com/eurecom-s3/symcc/issues/164
-ARG LLVM_VERSION=12
+ARG LLVM_VERSION=20
 
 # installing/building with the right LLVM version, currently:
 # - no plan to support < 11
@@ -58,17 +58,36 @@ ARG LLVM_VERSION=12
 # - 16 and 17 provided by llvm.org
 # - TODO 18 should be fixed
 RUN if  [ $LLVM_VERSION -le 11 ];  then echo "LLVM <= 11 not supported" ; false ;fi
-RUN if  [ $LLVM_VERSION -ge 18 ];  then echo "LLVM >= 18 currently not supported" ; false ;fi
+RUN if  [ $LLVM_VERSION -ge 18 ] && [ $LLVM_VERSION -ne 20 ];  then echo "LLVM >= 18 except 20 currently not supported" ; false ;fi
 RUN if  [ $LLVM_VERSION -eq 12 ] || [ $LLVM_VERSION -eq 13 ] || [ $LLVM_VERSION -eq 14 ] || [ $LLVM_VERSION -eq 15 ]; then 	\
-          apt install -y llvm-${LLVM_VERSION} clang-${LLVM_VERSION} ; 								\
-    else 					\
-          false  ; \
+        apt install -y llvm-${LLVM_VERSION} clang-${LLVM_VERSION} ; 								\
     fi
 
 RUN rm -rf /var/lib/apt/lists/*
 # Download the LLVM sources already so that we don't need to get them again when
 # SymCC changes
-RUN git clone -b llvmorg-$LLVM_VERSION.0.0 --depth 1 https://github.com/llvm/llvm-project.git /llvm_source
+RUN if [ $LLVM_VERSION -ge 12 ] && [ $LLVM_VERSION -le 17 ]; then git clone -b llvmorg-$LLVM_VERSION.0.0 --depth 1 https://github.com/llvm/llvm-project.git /llvm_source; fi
+RUN if [ $LLVM_VERSION -eq 20 ]; then \
+    wget https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.0/llvm-project-20.1.0.src.tar.xz -O /tmp/llvm-project-20.1.0.src.tar.xz; \
+    tar -xf /tmp/llvm-project-20.1.0.src.tar.xz -C /tmp; \
+    mv /tmp/llvm-project-20.1.0.src /llvm_source; \
+    rm /tmp/llvm-project-20.1.0.src.tar.xz; \
+    mkdir -p /llvm_source/build; \
+    cd /llvm_source/build; \
+    case "$(uname -m)" in \
+        x86_64) \
+            cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="llvm;clang" -DLLVM_TARGETS_TO_BUILD="X86" -DCMAKE_INSTALL_PREFIX=/usr/local ../llvm; \
+            ninja -j 16; \
+            ninja install; \
+            ;; \
+        aarch64) \
+            cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="llvm;clang" -DLLVM_TARGETS_TO_BUILD="AArch64" -DCMAKE_INSTALL_PREFIX=/usr/local ../llvm; \
+            ninja -j 16; \
+            ninja install; \
+            ;; \
+    esac; \
+    fi
+
 
 RUN cd /tmp \
     && case "$(uname -m)" in \
