@@ -76,12 +76,12 @@ RUN if [ $LLVM_VERSION -eq 20 ]; then \
     cd /llvm_source/build; \
     case "$(uname -m)" in \
         x86_64) \
-            cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="llvm;clang" -DLLVM_TARGETS_TO_BUILD="X86" -DCMAKE_INSTALL_PREFIX=/usr/local ../llvm; \
+            cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="llvm;clang;clang-tools-extra" -DLLVM_TARGETS_TO_BUILD="X86" -DCMAKE_INSTALL_PREFIX=/usr/local ../llvm; \
             ninja -j 16; \
             ninja install; \
             ;; \
         aarch64) \
-            cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="llvm;clang" -DLLVM_TARGETS_TO_BUILD="AArch64" -DCMAKE_INSTALL_PREFIX=/usr/local ../llvm; \
+            cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS="llvm;clang;clang-tools-extra" -DLLVM_TARGETS_TO_BUILD="AArch64" -DCMAKE_INSTALL_PREFIX=/usr/local ../llvm; \
             ninja -j 16; \
             ninja install; \
             ;; \
