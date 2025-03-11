@@ -3,5 +3,6 @@
         "Z3_TRUST_SYSTEM_VERSION": "on",
         "SYMCC_RT_BACKEND": "simple",
         "LLVM_DIR": "/llvm_source/build"
-    }
+    },
+    "clangd.path": "/usr/local/bin/clangd"
 }
